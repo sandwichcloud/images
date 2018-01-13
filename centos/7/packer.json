@@ -1,0 +1,35 @@
+{
+  "variables": {
+    "image_dir": "",
+    "image_name": ""
+  },
+  "builders":
+  [
+    {
+      "type": "qemu",
+      "iso_url": "http://mirrors.rit.edu/centos/7/isos/x86_64/CentOS-7-x86_64-NetInstall-1708.iso",
+      "iso_checksum": "fe3d960cce4d2c1c9f1b66817fe87cc0ee1a1c6c5dd126204cb5c33d51a45620",
+      "iso_checksum_type": "sha256",
+      "output_directory": "output",
+      "shutdown_command": "",
+      "shutdown_timeout": "30m",
+      "communicator": "none",
+      "disk_size": 20000,
+      "qemuargs": [["-m", "2048m"]],
+      "format": "qcow2",
+      "headless": true,
+      "accelerator": "kvm",
+      "http_directory": "{{ user `image_dir` }}",
+      "http_port_min": 10082,
+      "http_port_max": 10089,
+      "vm_name": "{{ user `image_name` }}",
+      "net_device": "virtio-net",
+      "disk_interface": "virtio",
+      "boot_wait": "30s",
+      "vnc_bind_address": "127.0.0.1",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/kickstart.txt<enter><wait>"
+      ]
+    }
+  ]
+}

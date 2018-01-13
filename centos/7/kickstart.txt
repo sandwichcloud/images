@@ -7,7 +7,7 @@ skipx
 poweroff
 firewall --enabled --service=ssh
 firstboot --disable
-ignoredisk --only-use=sda
+ignoredisk --only-use=vda
 keyboard --vckeymap=us --xlayouts='us'
 # System language
 lang en_US.UTF-8
@@ -25,10 +25,10 @@ selinux --enforcing
 services --disabled="kdump" --enabled="network,sshd,rsyslog,chronyd"
 timezone --utc UTC
 # Disk
-bootloader --append="console=tty0 net.ifnames=0" --location=mbr --timeout=1 --boot-drive=sda
+bootloader --append="console=tty0 net.ifnames=0" --location=mbr --timeout=1
 zerombr
 clearpart --all --initlabel
-part / --fstype="xfs" --ondisk=sda --size=4096 --grow
+part / --fstype="xfs" --ondisk=vda --size=4096 --grow
 
 %post --erroronfail
 exec < /dev/tty3 > /dev/tty3
