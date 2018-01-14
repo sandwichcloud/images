@@ -14,7 +14,7 @@
       "shutdown_command": "",
       "shutdown_timeout": "30m",
       "communicator": "none",
-      "disk_size": 20000,
+      "disk_size": 5000,
       "qemuargs": [["-m", "2048m"]],
       "format": "qcow2",
       "headless": true,

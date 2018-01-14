@@ -8,7 +8,7 @@ Install Requirements:
 
 ```
 yum install epel-release
-yum install qemu-system-x86 qemu-kvm qemu-img virt-manager libvirt libvirt-python libvirt-client virt-install virt-viewer
+yum install qemu-system-x86 qemu-kvm qemu-img
 ```
 
 Usage:
