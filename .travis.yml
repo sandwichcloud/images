@@ -1,15 +1,11 @@
 language: python
 python:
   - "2.7"
-if: tag IS present
-addons:
-  apt:
-    packages:
-      - ansible
+# if: tag IS present
 before_install:
   - openssl aes-256-cbc -K $encrypted_465f01a5e248_key -iv $encrypted_465f01a5e248_iv -in creds.json.enc -out creds.json -d
 install:
-  - pip install apache-libcloud
+  - pip install apache-libcloud ansible
 script:
   - ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''
   - ansible-playbook build/playbook.yaml
