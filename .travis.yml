@@ -12,4 +12,4 @@ install:
   - pip install apache-libcloud
 script:
   - ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''
-  - ansible build/playbook.yaml
+  - ansible-playbook build/playbook.yaml
