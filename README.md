@@ -1,8 +1,10 @@
-# images
+# Images
 Official Images to use on Sandwich Cloud
 
-All images are built using packer with a qcow2 output, converted to vmdk then
-packed into a tarball with gzip compression.
+All images are built on GCE using Nested Virtualization, using packer with a
+qcow2 output, converted to vmdk then packed into a tarball with gzip compression.
+
+## Manual Usage
 
 Install Requirements:
 

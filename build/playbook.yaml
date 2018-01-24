@@ -1,0 +1,116 @@
+- name: Create GCE Instances
+  hosts: localhost
+  vars:
+    service_account_email: "travis@sandwich-cloud.iam.gserviceaccount.com"
+    credentials_file: "../creds.json"
+    project_id: "sandwich-cloud"
+  tasks:
+    - name: delete previous instances
+      gce:
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+        instance_names: packer-build
+        zone: us-central1-b
+        state: absent
+      ignore_errors: true
+
+    - name: create instances
+      gce:
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+        instance_names: packer-build
+        zone: us-central1-b
+        machine_type: n1-standard-2
+        image_family: sandwich-packer
+        disk_size: 50
+        state: present
+        preemptible: true
+        tags:
+          - home-ssh
+          - travis-ssh
+        metadata: "{ \"ssh-keys\": \"travis:{{ lookup('file', '~/.ssh/id_rsa.pub') }}\" }"
+      register: gce
+
+    - name: Save host data
+      add_host:
+        hostname: "{{ item.public_ip }}"
+        groupname: gce_instances
+      with_items: "{{ gce.instance_data }}"
+
+- name: Build Sandwich Images
+  gather_facts: no
+  hosts: gce_instances
+  any_errors_fatal: no
+  vars:
+    ansible_ssh_user: travis
+  tasks:
+    - name: wait for host to become ready
+      wait_for_connection:
+        delay: 30
+        timeout: 300
+
+    - name: Gathering Facts
+      setup:
+
+    - name: clone images repo
+      git:
+        repo: https://github.com/sandwichcloud/images.git
+        dest: '~/images'
+        version: "{{ lookup('env', 'TRAVIS_COMMIT') | default('master', true) }}"
+
+    # CentOS 7
+    - name: packer centos 7
+      shell: |
+        export IMAGE_DIR="centos/7"
+        export IMAGE_NAME=`echo $IMAGE_DIR | tr / -`
+        packer build -var "image_dir=$IMAGE_DIR" -var "image_name=$IMAGE_NAME" $IMAGE_DIR/packer.json
+      args:
+        chdir: images/
+      async: 900
+      poll: 0
+      register: centos_7_packer
+
+    - name: wait for packer centos 7
+      async_status: jid={{ centos_7_packer.ansible_job_id }}
+      register: centos_7_packer_result
+      until: centos_7_packer_result.finished
+      retries: 200
+
+    - name: convert centos 7
+      shell: |
+        export DATE=`date +"%Y-%m-%dT%H.%M.%S"`
+        export IMAGE_DIR="centos/7"
+        export IMAGE_NAME=`echo $IMAGE_DIR | tr / -`
+        qemu-img convert -f qcow2 -O vmdk output/$IMAGE_NAME output/$IMAGE_NAME-$DATE.vmdk
+        tar -cvzf output/$IMAGE_NAME-$DATE.tar.gz -C output/ $IMAGE_NAME-$DATE.vmdk
+      args:
+        chdir: images/
+
+    # Download Images
+    - name: download vmdks
+      synchronize:
+        compress: yes
+        mode: pull
+        src: images/output/
+        dest: ../output/
+        rsync_opts:
+          - "--include=*.tar.gz"
+          - "--exclude=*"
+
+- name: Delete GCE Instances
+  hosts: localhost
+  vars:
+    service_account_email: "travis@sandwich-cloud.iam.gserviceaccount.com"
+    credentials_file: "../creds.json"
+    project_id: "sandwich-cloud"
+  tasks:
+    - name: delete instances
+      gce:
+        service_account_email: "{{ service_account_email }}"
+        credentials_file: "{{ credentials_file }}"
+        project_id: "{{ project_id }}"
+        instance_names: packer-build
+        zone: us-central1-b
+        state: absent
