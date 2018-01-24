@@ -1,14 +1,22 @@
 language: python
 python:
-  - "2.7"
-# if: tag IS present
+- '2.7'
+if: tag is present
 env:
   global:
-    - ANSIBLE_HOST_KEY_CHECKING=False
+  - ANSIBLE_HOST_KEY_CHECKING=False
 before_install:
-  - openssl aes-256-cbc -K $encrypted_465f01a5e248_key -iv $encrypted_465f01a5e248_iv -in creds.json.enc -out creds.json -d
+- openssl aes-256-cbc -K $encrypted_465f01a5e248_key -iv $encrypted_465f01a5e248_iv
+  -in creds.json.enc -out creds.json -d
 install:
-  - pip install apache-libcloud pycrypto ansible
+- pip install apache-libcloud pycrypto ansible
 script:
-  - ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''
-  - ansible-playbook build/playbook.yaml
+- ssh-keygen -f ~/.ssh/id_rsa -t rsa -N ''
+- ansible-playbook build/playbook.yaml
+deploy:
+  provider: releases
+  api_key:
+    secure: iMimaZyi2q8AafqZaIDz1qZcbR7Kv0uPdQ6iVSKobiubQtGvgMKBQ+s4XO3UCTSE8RuheaGLr+HOTd8T4rtiSSXRHmkJkXkXfl0Yq2Uk/DPbGctNygX/y4mebwFh7xo9BnS1eApgIxaVGAQJzjCyPbsmcvNyvld9+nHloCPElNMEnm9TWcpM4Tc7nKO2haxTIkgHRnAG1KPyf2VtkFE74LMIvwbfbv1d8F2qFlU9R8O9ihSskIKsnti9ZhRFIdhSULZU5sEDpB+1mFbmFfH97OMbTvKz9np29sLR/PWVQrXIJoP9Qp1XWqW8A1UW0UZ8kMV1szTVg4HWJogsDH51RLhkzq9yGNXgAman+XA6bimF9LTSGgTjR6uR+HnSiD+R2OMZH8TPDObKav1cG6GHLc1Jd9NkGvFOSOnnQkQo4U7MbKNSGMdtC4iaHiYtaaQTOa4b7eeEo6iIyW42Sd2RwQWl+xX6O80P2DjVDRYXZPEUCHvwMNCUYkiJ7Y9g4La/yW++jOPQTq/69jrqgDNarNu89yjCV9lrkq84Td6QMb45RXc+iSusQbXKYb0+IyGmUVsjNFNihDL5rYxLg2AN56sSI8N4Icz9RPxxmT+6F47FAHMwbKYh89FB7hM4d/VFzEYGRQIQoJyvp847QBBGDZcfhoGcGdfGnxxWx6797W8=
+  file: output/*
+  on:
+    tags: true
